@@ -87,19 +87,21 @@ class Servos:
 
   # """----------------- Funcion devuelve los numServos de todos los servos ------------------"""
 
-  def getListServos(self):
+  def getListServos(self,listServos):
     response = []
-    for servo in self.Servos:
-      response.append({ "NumServo": servo["NumServo"]})
+    for numServo in listServos:
+      for servo in self.Servos:
+        if numServo == servo["NumServo"]:
+          response.append(servo)
     return response
-  
+    
 
   # """--------------------------- Funciones para Sensores ---------------------------------"""
 
   # Retorna los valores de los sensores del objeto que recibe
-  def getServosSensor(self, ServosSensors):
+  def getServosSensor(self, listServos):
     response = []
-    for servo in ServosSensors:
+    for servo in listServos:
 
       IndexServo = self.findIndexServo(servo["NumServo"])
       ServoFound = self.Servos[IndexServo]
@@ -149,13 +151,15 @@ class Servos:
     ServosActuators = server.getServosActuators(ListServos)
     return ServosActuators
 
+  def setServerServosActuator(self,ServosActuators):
+    server.setServosActuators(ServosActuators)
 
   # ---------------------------- Comunicacion con el robot ---------------------------------
 
   def activateServomotor(self,Servos):
     for servo in Servos:
       IndexServo = self.findIndexServo(servo["NumServo"])
-      self.Servos[IndexServo] = servo["Actuator"]
+      self.Servos[IndexServo]["Actuator"] = servo["Actuator"]
       ServoFound = self.Servos[IndexServo]
       robot.activateActuator(ServoFound["NumServo"],ServoFound["Actuator"],ServoFound["MicroController"])
 

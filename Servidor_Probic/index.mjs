@@ -26,7 +26,6 @@ app.post('/getServosSensors', (req, res) => {
 
 app.post('/setServosSensors', (req, res) => {
   servos.setServosSensors(req.body)
-  console.log(servos)
   res.status(200).json({ ok: 'ok' })
 })
 
@@ -37,7 +36,6 @@ app.post('/getServosActuators', (req, res) => {
 
 app.post('/setServosActuators', (req, res) => {
   servos.setServosActuator(req.body)
-  console.log(servos)
   res.status(200).json({ ok: 'ok' })
 })
 
@@ -48,7 +46,6 @@ app.post('/getSensorsForces', (req, res) => {
 
 app.post('/setSensorsForces', (req, res) => {
   sensorsForce.setSensorsForce(req.body)
-  console.log(sensorsForce)
   res.status(200).json({ ok: 'ok' })
 })
 

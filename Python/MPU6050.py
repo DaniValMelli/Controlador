@@ -1,5 +1,5 @@
 import smbus2					#import SMBus module of I2C
-from time import sleep          #import
+import time
 
 #some MPU6050 Registers and their Address
 PWR_MGMT_1   = 0x6B
@@ -19,25 +19,32 @@ Device_Address = 0x68   # MPU6050 device address
 
 def MPU_Init():
 
-	#write to sample rate register
-	bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
-	
-	#Write to power management register
-	bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
-	
-	#Write to Configuration register
-	bus.write_byte_data(Device_Address, CONFIG, 0)
-	
-	#Write to Gyro configuration register
-	bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
-	
-	#Write to interrupt enable register
-	bus.write_byte_data(Device_Address, INT_ENABLE, 1)
+  #write to sample rate register
+  bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
+  time.sleep(0.0001)
+
+  #Write to power management register
+  bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
+  time.sleep(0.0001)
+
+  #Write to Configuration register
+  bus.write_byte_data(Device_Address, CONFIG, 0)
+  time.sleep(0.0001)
+
+  #Write to Gyro configuration register
+  bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
+  time.sleep(0.0001)
+
+  #Write to interrupt enable register
+  bus.write_byte_data(Device_Address, INT_ENABLE, 1)
+  time.sleep(0.0001)
 
 def read_raw_data(addr):
 	#Accelero and Gyro value are 16-bit
   high = bus.read_byte_data(Device_Address, addr)
+  time.sleep(0.0001)
   low = bus.read_byte_data(Device_Address, addr+1)
+  time.sleep(0.0001)
 
   #concatenate higher and lower value
   value = ((high << 8) | low)
@@ -56,5 +63,4 @@ def readAccelerationY():
 def readAccelerationZ():
   return read_raw_data(ACCEL_ZOUT_H)
 
-print("INICIALIZACION MPU")
 MPU_Init()

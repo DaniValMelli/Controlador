@@ -44,7 +44,7 @@ float value = 0.0;
 
 void setup() {
   Wire.begin(ADDR);
-  Wire.onReceive(receiveEvent); 
+  Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
 }
 
@@ -60,63 +60,40 @@ void receiveEvent(int numBytes) {
     data[i] = Wire.read();
     i++;
   }
-  handleRequest(data);
+  if (data[0] == 0){
+    handleRequest(data);
+  }else{
+    servomotor = data[0];
+  }
+  
 }
 
 void handleRequest(byte data[5]) {
   
   boolean bandera = true;
 
-  if( data[1] != GET_SERVOMOTOR && data[1] != SET_SERVOMOTOR && data[1] != ACTIVATE_SERVOMOTOR && data[1] != DEACTIVATE_SERVOMOTOR) { bandera = false; }
+  if( data[1] != SET_SERVOMOTOR && data[1] != ACTIVATE_SERVOMOTOR && data[1] != DEACTIVATE_SERVOMOTOR) { bandera = false; }
   if( data[2] != NUM_SERVOMOTOR_1 && data[2] != NUM_SERVOMOTOR_2) { bandera = false; }
 
   if ( bandera == true ){
-    response = OK;
 
     request = data[1];
     servomotor = data[2];
     value = data[3] + float(data[4])/100;
+
+    makeRequest();
   }
 
 }
 
-void requestEvent() {
-
-  makeRequest();
-
-  byte message[3];
-
-  int integerValueMessage = int(value);
-  int decimalValueMessage = round((value - integerValueMessage) * 100);
-
-  message[0] = response;
-  message[1] = integerValueMessage;
-  message[2] = decimalValueMessage;
-  Wire.write(message, 3);
-
-  response = ERROR;
-}
-
 void makeRequest(){
   
-  // requests the reading of the angular position sensor of the servomotor
-  if ( request == GET_SERVOMOTOR ){
-
-    if( servomotor == NUM_SERVOMOTOR_1 ){
-      value = Servomotor1.getSensor();
-    }else if (servomotor == NUM_SERVOMOTOR_2) {
-      value = Servomotor2.getSensor();
-    }
-
-  //  requests to move the servo motor to an angular position
-  } else if ( request == SET_SERVOMOTOR ){
+  if ( request == SET_SERVOMOTOR ){
 
     if( servomotor == NUM_SERVOMOTOR_1 ){
       Servomotor1.setActuator(value);
-      value = 0.0;
     }else if (servomotor == NUM_SERVOMOTOR_2) {
       Servomotor2.setActuator(value);
-      value = 0.0;
     }
     
   }else if ( request == ACTIVATE_SERVOMOTOR ){
@@ -139,7 +116,31 @@ void makeRequest(){
 
   }
 
+}
 
+void requestEvent() {
+
+  returnSensor();
+  byte message[3];
+
+  int response = OK;
+  int integerValueMessage = int(value);
+  int decimalValueMessage = round((value - integerValueMessage) * 100);
+
+  message[0] = response;
+  message[1] = integerValueMessage;
+  message[2] = decimalValueMessage;
+  Wire.write(message, 3);
+
+  response = ERROR;
+}
+
+void returnSensor() {
+  if( servomotor == NUM_SERVOMOTOR_1 ){
+    value = Servomotor1.getSensor();
+  }else if (servomotor == NUM_SERVOMOTOR_2) {
+    value = Servomotor2.getSensor();
+  }
 }
 
 void LeerSensores(){
