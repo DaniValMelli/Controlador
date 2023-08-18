@@ -2,7 +2,7 @@ import requests
 
 HEADERS = {"Content-Type": "application/json"}
 
-URL = "http://192.168.137.145:3000/"
+URL = "http://192.168.36.150:3000/"
 
 URL_GET_SERVOS_SENSORS = URL + "getServosSensors"
 URL_SET_SERVOS_SENSORS = URL + "setServosSensors"

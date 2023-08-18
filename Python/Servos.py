@@ -1,5 +1,6 @@
 import ServerServices as server
 import RobotServices as robot
+import numpy as np
 
 class Servos:
 
@@ -168,3 +169,9 @@ class Servos:
       IndexServo = self.findIndexServo(servo["NumServo"])
       ServoFound = self.Servos[IndexServo]
       robot.deactivateActuator(ServoFound["NumServo"],ServoFound["MicroController"])
+
+  def readMPU(self, vectorMediana):
+    vectorMediana = [ vectorMediana[1], vectorMediana[2], vectorMediana[3], robot.readMPU() ]
+    angulo = np.median(vectorMediana)
+    
+    return ( angulo, vectorMediana )

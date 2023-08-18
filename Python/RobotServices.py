@@ -34,14 +34,21 @@ def sendWrite( Request, Servomotor, Value, ADDR_MCU ):
 def sendRead( Servomotor, ADDR_MCU ):
   auxResponse = []
   value = 0.0
-  try:
-    auxResponse = bus.read_i2c_block_data(ADDR_MCU,Servomotor,3)
-    breakpoint()
-    integerValue = auxResponse[1]
-    decimalValue = (auxResponse[2])/100
-    value = integerValue + decimalValue
-  except Exception as e:
-    print("Servomotor: ", Servomotor ,"Error: ",e)
+
+  repeticiones = 0
+  bandera = True
+  while bandera:
+    try:
+      auxResponse = bus.read_i2c_block_data(ADDR_MCU,Servomotor,3)
+      integerValue = auxResponse[1]
+      decimalValue = (auxResponse[2])/100
+      value = integerValue + decimalValue
+      bandera = False
+    except Exception as e:
+      print("Servomotor: ", Servomotor ,"Error: ",e)
+      repeticiones += 1
+      if repeticiones == 2:
+        bandera = False
 
   time.sleep(0.0001)
 
@@ -62,15 +69,5 @@ def deactivateActuator(Servomotor, ADDR_MCU):
   sendWrite(DEACTIVATE_SERVOMOTOR, Servomotor, 0.0, ADDR_MCU)
 
 def readMPU():
-  
-  acc_y,acc_z = 0
-  for i in range(0,20):
-    acc_y += MPU6050.readAccelerationY()
-    acc_z += MPU6050.readAccelerationZ()
-
-  acc_y /= 20
-  acc_z /= 20
-  angulo = math.degrees(math.atan(acc_z/acc_y))
-  
-  print("Angulo: ", angulo)
-        
+  return MPU6050.readMPU()
+    

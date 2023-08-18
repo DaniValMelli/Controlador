@@ -4,8 +4,6 @@ import Controlador as PID
 
 servos = Servos()
 
-
-# ------------  Offsets posicion bipedestacion estatica ---------------
 def PosicionInicialRobot():
   servosActuator = [
     {
@@ -107,8 +105,27 @@ print("Inicializacion terminada")
 time.sleep(10)
 print("Controlando")
 
-while True:
+# ---------------  Variables para la prueba ------------------
+segundo = 1000000000
+TiempoPrueba = 60*segundo
+tiempoInicial = time.time_ns()
+tiempoFinal = time.time_ns()
+
+VectorError = []
+
+while tiempoFinal - tiempoInicial < TiempoPrueba:
 
   salida, vectorMediana = servos.readMPU(vectorMediana)
   [accionControl, salidaAnterior, tiempoAnterior_ns, errorAcumulado, errorAnterior] = PID.controlador( salida, salidaAnterior, tiempoAnterior_ns, errorAcumulado, errorAnterior )
   setAccionControl(accionControl)
+
+  Error = 7.0 - salida
+  VectorError.append(Error)
+  tiempoFinal = time.time_ns()
+
+sumatoria = 0.0
+for i in range(0,len(VectorError)):
+    sumatoria += VectorError[i]**2
+
+RMSE = math.sqrt(sumatoria/len(VectorError))
+print("RMSE: " , RMSE, "N: ", len(VectorError))

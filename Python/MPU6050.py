@@ -1,66 +1,53 @@
-import smbus2					#import SMBus module of I2C
-import time
+from MPU.MPU6050 import MPU6050
+import math
 
-#some MPU6050 Registers and their Address
-PWR_MGMT_1   = 0x6B
-SMPLRT_DIV   = 0x19
-CONFIG       = 0x1A
-GYRO_CONFIG  = 0x1B
-INT_ENABLE   = 0x38
-ACCEL_XOUT_H = 0x3B
-ACCEL_YOUT_H = 0x3D
-ACCEL_ZOUT_H = 0x3F
-GYRO_XOUT_H  = 0x43
-GYRO_YOUT_H  = 0x45
-GYRO_ZOUT_H  = 0x47
+i2c_bus = 1
+device_address = 0x68
+# The offsets are different for each device and should be changed
+# accordingly using a calibration procedure
+x_accel_offset = -2725
+y_accel_offset = -1545
+z_accel_offset = 2242
+x_gyro_offset = 5
+y_gyro_offset = 3
+z_gyro_offset = 110
+enable_debug_output = True
 
-bus = smbus2.SMBus(1) 	# or buACCEL_ZOUT_Hs = smbus.SMBus(0) for older version boards
-Device_Address = 0x68   # MPU6050 device address
+mpu = MPU6050(i2c_bus, device_address, x_accel_offset, y_accel_offset,
+              z_accel_offset, x_gyro_offset, y_gyro_offset, z_gyro_offset,
+              enable_debug_output)
 
-def MPU_Init():
+mpu.dmp_initialize()
+mpu.set_DMP_enabled(True)
+mpu_int_status = mpu.get_int_status()
+print(hex(mpu_int_status))
 
-  #write to sample rate register
-  bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
-  time.sleep(0.0001)
+packet_size = mpu.DMP_get_FIFO_packet_size()
+print(packet_size)
+FIFO_count = mpu.get_FIFO_count()
+print(FIFO_count)
 
-  #Write to power management register
-  bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
-  time.sleep(0.0001)
+count = 0
+FIFO_buffer = [0]*64
 
-  #Write to Configuration register
-  bus.write_byte_data(Device_Address, CONFIG, 0)
-  time.sleep(0.0001)
+FIFO_count_list = list()
 
-  #Write to Gyro configuration register
-  bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
-  time.sleep(0.0001)
+def readMPU():
 
-  #Write to interrupt enable register
-  bus.write_byte_data(Device_Address, INT_ENABLE, 1)
-  time.sleep(0.0001)
-
-def read_raw_data(addr):
-	#Accelero and Gyro value are 16-bit
-  high = bus.read_byte_data(Device_Address, addr)
-  time.sleep(0.0001)
-  low = bus.read_byte_data(Device_Address, addr+1)
-  time.sleep(0.0001)
-
-  #concatenate higher and lower value
-  value = ((high << 8) | low)
-  
-  #to get signed value from mpu6050
-  if(value > 32768):
-    value = value - 65536
-  return value
-
-def readAccelerationX():
-  return read_raw_data(ACCEL_XOUT_H)
-
-def readAccelerationY():
-  return read_raw_data(ACCEL_YOUT_H)
-
-def readAccelerationZ():
-  return read_raw_data(ACCEL_ZOUT_H)
-
-MPU_Init()
+    try:
+        FIFO_count = mpu.get_FIFO_count()
+        mpu_int_status = mpu.get_int_status()
+    
+        while FIFO_count < packet_size:
+            FIFO_count = mpu.get_FIFO_count()
+        FIFO_buffer = mpu.get_FIFO_bytes(packet_size)
+        
+        quat = mpu.DMP_get_quaternion_int16(FIFO_buffer)
+        grav = mpu.DMP_get_gravity(quat)
+        roll_pitch_yaw = mpu.DMP_get_roll_pitch_yaw(quat,grav)
+        angulo = roll_pitch_yaw.x
+        mpu.reset_FIFO()
+    except Exception as e:
+        angulo = readMPU()
+        
+    return math.degrees(angulo)

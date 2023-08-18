@@ -1,9 +1,11 @@
-import RobotServices as robot
-import time 
+from Servos import Servos
+import time, math
+import Controlador as PID
+
+servos = Servos()
+ListServos = servos.getListServos(range(0,13))
 
 while True:
-  tiempoInicial = time.time_ns()
-  robot.readMPU()
-  tiempoFinal = time.time_ns()
-  print("Tiempo: " , tiempoFinal - tiempoInicial)
-  time.sleep(0.1)
+    servos.getServosSensor(ListServos)
+  
+  
